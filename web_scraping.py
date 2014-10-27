@@ -4,6 +4,9 @@ from lxml import html
 import requests
 import pprint
 from myThread import MyThread
+import ho.pisa as pisa
+import subprocess
+import StringIO
 # from Queue import Queue
 
 pages = {}
@@ -20,6 +23,19 @@ def Requests_Html(url):
         print "DNS Failure, Connection refused"
         print "Check your network connection... are you connected to web"
         exit(0)
+
+
+def HTML2PDF(data, filename, open=False):
+
+    """
+        Simple test showing how to create a PDF file from
+        PML Source String. Also shows errors and tries to start
+        the resulting PDF
+    """
+    pdf = pisa.CreatePDF(StringIO.StringIO(data), file(filename, "wb"))
+    if open and (not pdf.err):
+        subprocess.call("open", str(filename))
+    return not pdf.err
 
 
 def main():
@@ -41,9 +57,9 @@ def main():
 
     # pages[k] = i.getResult()
     page = MyThread.getResult()
-    print page.qsize()
-    for i in range(page.qsize()):
-        pages[i] = page.get()
+    print pp.pprint(page)
+    # for i in range(page.qsize()):
+    #    pages[i] = page.get()
 
 
 if __name__ == "__main__":
