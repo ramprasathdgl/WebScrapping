@@ -2,11 +2,12 @@
 
 import threading
 from time import ctime
-from Queue import Queue
+# from Queue import Queue
 
 
 class MyThread(threading.Thread):
-    q = Queue(maxsize=0)
+    # q = Queue(maxsize=0)
+    st = {}
 
     def __init__(self, func, args, name=""):
         threading.Thread.__init__(self)
@@ -17,10 +18,11 @@ class MyThread(threading.Thread):
 
     @staticmethod
     def getResult():
-        return MyThread.q
+        return MyThread.st
 
     def run(self):
         print 'starting', self.name, 'at:', ctime()
         # self.res = self.func(*self.args)
-        MyThread.q.put(self.func(*self.args))
+        # MyThread.q.put(self.func(*self.args))
+        MyThread.st[self.name] = self.func(*self.args)
         print self.name, 'finished at:', ctime()
