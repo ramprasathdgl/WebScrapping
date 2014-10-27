@@ -32,17 +32,30 @@ def HTML2PDF(data, filename, open=False):
         PML Source String. Also shows errors and tries to start
         the resulting PDF
     """
-    pdf = pisa.CreatePDF(StringIO.StringIO(data), file(filename, "wb"))
+    pdf = pisa.CreatePDF(StringIO.StringIO(data), file(filename, "wb"),
+                         link_callback=link_callback)
     if open and (not pdf.err):
-        subprocess.call("open", str(filename))
+        subprocess.call(["open", str(filename)])
     return not pdf.err
+
+
+def link_callback(uri, rel):
+    path = "/Users/Ram/Dev/Scraping/Dates/"
+    if uri.find(".jpg") > 1:
+        print uri.find(".jpg")
+        print "calling the call back", uri, rel
+        print path+uri
+        return path+uri
 
 
 def main():
     threads = []
+    global pages
     page_response = Requests_Html(url)
     tree = html.fromstring(page_response.text)
     page_index = tree.xpath('/html/body//blockquote/p/a/@href')
+    pages[url] = page_response
+    return
 
     for index, html_index in enumerate(page_index):
         html_ = base_url + html_index
@@ -56,11 +69,14 @@ def main():
         j.join()
 
     # pages[k] = i.getResult()
-    page = MyThread.getResult()
-    print pp.pprint(page)
+    pages = MyThread.getResult()
+    pages[url] = page_response
+    print pp.pprint(pages)
     # for i in range(page.qsize()):
     #    pages[i] = page.get()
 
 
 if __name__ == "__main__":
     main()
+    print pages[url]
+    HTML2PDF(pages[url].text, "test.pdf", open=True)
