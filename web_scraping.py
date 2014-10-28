@@ -68,7 +68,8 @@ def main():
     global html_url
     page_response = Requests_Html(url)
     tree = html.fromstring(page_response.text)
-    page_index = tree.xpath('/html/body//blockquote/p/a/@href')
+    page_index = tree.xpath('/html/body/p/b/a/@href')
+    # pp.pprint(page_index)
     pages[url] = page_response
     html_url.append(url)
 
@@ -84,19 +85,25 @@ def main():
     for j in threads:
         j.join()
 
-    # pages[k] = i.getResult()
     pages = MyThread.getResult()
     pages[url] = page_response
     print pp.pprint(pages)
     print pp.pprint(html_url)
-    # for i in range(page.qsize()):
-    #    pages[i] = page.get()
-
 
 if __name__ == "__main__":
     main()
+    threads = []
     pag = ""
-    for i in html_url:
-        pag = pag + pages[i].text
+    for j, i in enumerate(html_url):
+        pag = pages[i].text
+        fn = "test{0}.pdf".format(j)
+        t = MyThread(HTML2PDF, (pag, fn,), fn)
+        threads.append(t)
+    for th in threads:
+        th.start()
+
+    for th in threads:
+        th.join()
+
     # HTML2PDF(pages[url].text, "test.pdf", open=True)
-    HTML2PDF(pag, "test.pdf", open=True)
+    # HTML2PDF(pag, "test.pdf", open=True)
