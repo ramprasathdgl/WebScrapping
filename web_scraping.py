@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 from lxml import html
 import requests
 import pprint
@@ -10,6 +9,10 @@ import StringIO
 import shutil
 import tempfile
 import os
+import glob
+import time
+from pyPdf import PdfFileWriter, PdfFileReader
+import PyPDF2
 
 DEBUG = True
 pages = {}
@@ -41,7 +44,20 @@ def HTML2PDF(data, filename, open=False):
                          link_callback=link_callback)
     if open and (not pdf.err):
         subprocess.call(["open", str(filename)])
+    print "finished creating ", filename
     return not pdf.err
+
+
+def concat_pdf_helper(ip, op):
+    [op.addPage(ip.getPage(page_num)) for page_num in range(ip.numPages)]
+
+
+def concat_pdf(pdfs):
+    output = PdfFileWriter()
+    for i in pdfs:
+        print "concatenating file", i
+        concat_pdf_helper(PdfFileReader(file(i, "rb")), output)
+    output.write(file("Final.pdf", "wb"))
 
 
 def link_callback(uri, rel):
@@ -49,17 +65,24 @@ def link_callback(uri, rel):
     if uri.find(".jpg") > 1:
         # url_ = base_url + uri
         url_ = os.path.join(base_url, uri)
-        print url_
         image_response = requests.get(url_, stream=True)
-        print tmp_path
         with open(os.path.join(tmp_path, uri), 'wb') as img_file:
             shutil.copyfileobj(image_response.raw, img_file)
         del image_response
-        if True:
-            print uri.find(".jpg")
+        if False:
             print "calling the call back", uri, rel
             print os.path.join(tmp_path, uri)
         return os.path.join(tmp_path, uri)
+
+
+def fixPdf(pdfFile):
+    try:
+        fileOpen = file(pdfFile, "a")
+        fileOpen.write("EOF")
+        fileOpen.close()
+        return "Fixed"
+    except Exception, e:
+        return "Unable to open file: %s with error: %s" % (pdfFile, str(e))
 
 
 def main():
@@ -85,25 +108,42 @@ def main():
     for j in threads:
         j.join()
 
-    pages = MyThread.getResult()
+    pages = MyThread.getResult().copy()
     pages[url] = page_response
     print pp.pprint(pages)
     print pp.pprint(html_url)
 
 if __name__ == "__main__":
-    main()
-    threads = []
-    pag = ""
-    for j, i in enumerate(html_url):
-        pag = pages[i].text
-        fn = "test{0}.pdf".format(j)
-        t = MyThread(HTML2PDF, (pag, fn,), fn)
-        threads.append(t)
-    for th in threads:
-        th.start()
+    if True:
+        main()
+        threads = []
+        pdf_files = []
+        pag = ""
+        for j, i in enumerate(html_url):
+            pag = pages[i].text
+            fn = "{0}test.pdf".format(j)
+            pdf_files.append(fn)
+            t = MyThread(HTML2PDF, (pag, fn,), fn)
+            threads.append(t)
+        for th in threads:
+            th.start()
 
-    for th in threads:
-        th.join()
+        for th in threads:
+            th.join()
+
+    if False:
+        pdf_files = [files for files in glob.glob("test*.pdf")]
+        pdf_files.sort()
+    pp.pprint(pdf_files)
+    # concat_pdf(pdf_files)
+    time.sleep(6)
+    fp = [open(i, 'rb') for i in pdf_files]
+    merger = PyPDF2.PdfFileMerger()
+
+    for i in fp:
+        merger.append(fileobj=i)
+
+    merger.write(open("test_out.pdf", "wb"))
 
     # HTML2PDF(pages[url].text, "test.pdf", open=True)
     # HTML2PDF(pag, "test.pdf", open=True)
