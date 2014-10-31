@@ -14,15 +14,17 @@ class MyThread(threading.Thread):
         self.name = name
         self.func = func
         self.args = args
-        # self.res = ""
+        self.res = ""
 
     @staticmethod
     def getResult():
         return MyThread.st
 
     def run(self):
-        print 'starting', self.name, 'at:', ctime()
-        # self.res = self.func(*self.args)
-        # MyThread.q.put(self.func(*self.args))
-        MyThread.st[self.name] = self.func(*self.args)
-        print self.name, 'finished at:', ctime()
+        print 'starting ', self.name, ' at: ', ctime()
+        if self.name:
+            MyThread.st[self.name] = self.func(*self.args)
+        else:
+            self.res = self.func(*self.args)
+
+        print self.name, ' finished at: ', ctime()
