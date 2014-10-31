@@ -20,9 +20,9 @@ base_url = "http://www.fao.org/docrep/006/y4360e/"
 url = "http://www.fao.org/docrep/006/y4360e/y4360e00.HTM"
 
 
-def Requests_Html(url):
+def Requests_Html(url, stream=False):
     try:
-        page_response = requests.get(url)
+        page_response = requests.get(url, stream=stream)
         return page_response
     except requests.exceptions.ConnectionError:
         print "DNS Failure, Connection refused"
@@ -54,7 +54,7 @@ def link_callback(uri, rel):
     if uri.find(".jpg") > 1:
         # url_ = base_url + uri
         url_ = os.path.join(base_url, uri)
-        image_response = requests.get(url_, stream=True)
+        image_response = Requests_Html(url_, stream=True)
         with open(os.path.join(tmp_path, uri), 'wb') as img_file:
             shutil.copyfileobj(image_response.raw, img_file)
         del image_response
