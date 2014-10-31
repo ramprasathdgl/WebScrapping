@@ -9,8 +9,6 @@ import StringIO
 import shutil
 import tempfile
 import os
-import glob
-import time
 from pyPdf import PdfFileWriter, PdfFileReader
 import PyPDF2
 
@@ -33,16 +31,17 @@ def Requests_Html(url):
         exit(0)
 
 
-def HTML2PDF(data, filename, open=False):
+def HTML2PDF(data, filename, open_=False):
 
     """
         Simple test showing how to create a PDF file from
         PML Source String. Also shows errors and tries to start
         the resulting PDF
     """
-    pdf = pisa.CreatePDF(StringIO.StringIO(data), file(filename, "wb"),
-                         link_callback=link_callback)
-    if open and (not pdf.err):
+    with open(filename, "wb") as fp:
+        pdf = pisa.CreatePDF(StringIO.StringIO(data), fp,
+                             link_callback=link_callback)
+    if open_ and (not pdf.err):
         subprocess.call(["open", str(filename)])
     print "finished creating ", filename
     return not pdf.err
@@ -85,6 +84,14 @@ def fixPdf(pdfFile):
         return "Unable to open file: %s with error: %s" % (pdfFile, str(e))
 
 
+def joinPDF(pdf_files):
+    merger = PyPDF2.PdfFileMerger()
+    for file in pdf_files:
+        with open(file, "rb") as fp:
+            merger.append(fileobj=fp)
+    merger.write(open("test_out.pdf", "wb"))
+
+
 def main():
     threads = []
     global pages
@@ -112,38 +119,24 @@ def main():
     pages[url] = page_response
     print pp.pprint(pages)
     print pp.pprint(html_url)
+    threads = []
+    pdf_files = []
+    pag = ""
+    for j, i in enumerate(html_url):
+        pag = pages[i].text
+        fn = "{0}test.pdf".format(j)
+        pdf_files.append(fn)
+        t = MyThread(HTML2PDF, (pag, fn,), fn)
+        threads.append(t)
+    for th in threads:
+        th.start()
+
+    for th in threads:
+        th.join()
+    pp.pprint(pdf_files)
+    joinPDF(pdf_files)
 
 if __name__ == "__main__":
-    if True:
-        main()
-        threads = []
-        pdf_files = []
-        pag = ""
-        for j, i in enumerate(html_url):
-            pag = pages[i].text
-            fn = "{0}test.pdf".format(j)
-            pdf_files.append(fn)
-            t = MyThread(HTML2PDF, (pag, fn,), fn)
-            threads.append(t)
-        for th in threads:
-            th.start()
-
-        for th in threads:
-            th.join()
-
-    if False:
-        pdf_files = [files for files in glob.glob("test*.pdf")]
-        pdf_files.sort()
-    pp.pprint(pdf_files)
-    # concat_pdf(pdf_files)
-    time.sleep(6)
-    fp = [open(i, 'rb') for i in pdf_files]
-    merger = PyPDF2.PdfFileMerger()
-
-    for i in fp:
-        merger.append(fileobj=i)
-
-    merger.write(open("test_out.pdf", "wb"))
-
+    main()
     # HTML2PDF(pages[url].text, "test.pdf", open=True)
     # HTML2PDF(pag, "test.pdf", open=True)
