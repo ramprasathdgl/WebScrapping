@@ -9,7 +9,6 @@ import StringIO
 import shutil
 import tempfile
 import os
-from pyPdf import PdfFileWriter, PdfFileReader
 import PyPDF2
 
 DEBUG = True
@@ -45,18 +44,6 @@ def HTML2PDF(data, filename, open_=False):
         subprocess.call(["open", str(filename)])
     print "finished creating ", filename
     return not pdf.err
-
-
-def concat_pdf_helper(ip, op):
-    [op.addPage(ip.getPage(page_num)) for page_num in range(ip.numPages)]
-
-
-def concat_pdf(pdfs):
-    output = PdfFileWriter()
-    for i in pdfs:
-        print "concatenating file", i
-        concat_pdf_helper(PdfFileReader(file(i, "rb")), output)
-    output.write(file("Final.pdf", "wb"))
 
 
 def link_callback(uri, rel):
