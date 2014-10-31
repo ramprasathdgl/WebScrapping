@@ -28,6 +28,9 @@ def Requests_Html(url):
         print "DNS Failure, Connection refused"
         print "Check your network connection... are you connected to web"
         exit(0)
+    except requests.exceptions.Timeout:
+        print "Connection timed out"
+        exit(0)
 
 
 def HTML2PDF(data, filename, open_=False):
