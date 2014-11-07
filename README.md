@@ -6,7 +6,7 @@ Aim:
 
 Prerequisite Library : 
   1. pyPDF2
-  2. htmlib5
+  2. html5lib
   3. requests
   4. reportlab
   5. pisa
