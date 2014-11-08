@@ -10,5 +10,9 @@ Prerequisite Library :
   3. requests
   4. reportlab
   5. pisa
+  6. lxml
+	Prerequisite for lxml:
+		1. libxml2-dev and libxslt2 
+		Note: Use zypper(openSuse) , apt-get(Ubuntu), brew(mac-os) 
   
 Note : use pip to install the latest version
