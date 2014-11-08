@@ -13,7 +13,7 @@ import tempfile
 import os
 import PyPDF2
 
-DEBUG = True
+DEBUG = False
 pages = {}
 html_url = []
 pp = pprint.PrettyPrinter(indent=4)
